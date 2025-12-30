@@ -156,6 +156,23 @@ const KijijiParser = {
       }
     }
 
+    // VIN
+    const vinMatch = document.body.textContent.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i);
+    const vin = vinMatch ? vinMatch[1].toUpperCase() : '';
+
+    // Description
+    const descEl = document.querySelector('[class*="description"]') ||
+                   document.querySelector('[data-testid="description"]');
+    const rawDesc = descEl?.textContent?.trim() || '';
+    const description = this.cleanDescription(rawDesc);
+
+    // Features
+    const features = this.extractFeatures();
+
+    // Carfax URL
+    const carfaxLink = document.querySelector('a[href*="carfax"], a[href*="CARFAX"]');
+    const carfaxUrl = carfaxLink?.href || '';
+
     return {
       year,
       make,
@@ -166,10 +183,40 @@ const KijijiParser = {
       dealer,
       location: listingLocation,
       color: attributes.colour || attributes.color || '',
-      photos: [...new Set(photos)].slice(0, 10), // Remove duplicates
+      photos: [...new Set(photos)].slice(0, 10),
+      vin,
+      description,
+      features,
+      carfaxUrl,
       url: window.location.href,
       source: 'kijiji.ca'
     };
+  },
+
+  cleanDescription(raw) {
+    if (!raw) return '';
+    const marketingPhrases = [
+      /call (us )?(today|now)/gi, /don'?t miss/gi, /won'?t last/gi,
+      /best (deal|price)/gi, /act (fast|now)/gi, /financing available/gi,
+      /contact us/gi, /\b(amazing|incredible|fantastic)\b/gi, /!\s*!+/g
+    ];
+    let cleaned = raw;
+    marketingPhrases.forEach(p => cleaned = cleaned.replace(p, ''));
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    return cleaned.length > 500 ? cleaned.substring(0, 497) + '...' : cleaned;
+  },
+
+  extractFeatures() {
+    const features = [];
+    const selectors = ['[class*="feature"] li', '[class*="highlight"] li', '[class*="specs"] li'];
+    for (const sel of selectors) {
+      document.querySelectorAll(sel).forEach(el => {
+        const t = el.textContent?.trim();
+        if (t && t.length < 100) features.push(t);
+      });
+      if (features.length) break;
+    }
+    return [...new Set(features)].slice(0, 20);
   },
 
   // Extract from attribute list/table

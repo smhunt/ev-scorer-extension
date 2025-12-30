@@ -296,8 +296,17 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 });
 
-// Note: Action click is handled by popup (popup.html)
-// Sidebar is opened via button in popup or Edit & Save in overlay
+// Handle action click - open side panel
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    await chrome.sidePanel.open({ tabId: tab.id });
+  } catch (e) {
+    console.error('Error opening side panel:', e);
+  }
+});
+
+// Set side panel behavior - open on action click
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 
 // Initialize badge on startup
 updateBadge();

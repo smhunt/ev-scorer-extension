@@ -455,6 +455,31 @@
         </div>
       </div>
 
+      ${car.vin ? `
+        <div class="detail-section">
+          <div class="detail-section-title">VIN</div>
+          <div class="detail-item full-width">
+            <span class="detail-value" style="font-family: monospace; font-size: 13px;">${car.vin}</span>
+          </div>
+        </div>
+      ` : ''}
+
+      ${car.features?.length ? `
+        <div class="detail-section">
+          <div class="detail-section-title">Features</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            ${car.features.map(f => `<span style="background: var(--slate-100); padding: 4px 8px; border-radius: 4px; font-size: 11px;">${f}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${car.description ? `
+        <div class="detail-section">
+          <div class="detail-section-title">Description</div>
+          <p style="font-size: 13px; color: var(--slate-600); line-height: 1.5;">${car.description}</p>
+        </div>
+      ` : ''}
+
       ${car.url ? `
         <div class="detail-section">
           <div class="detail-section-title">Source</div>
@@ -463,6 +488,11 @@
             <a href="${car.url}" target="_blank" class="detail-value" style="color: var(--tally-blue); text-decoration: underline; word-break: break-all; font-size: 12px;">
               View Original Listing
             </a>
+            ${car.carfaxUrl ? `
+              <a href="${car.carfaxUrl}" target="_blank" style="display: inline-block; margin-top: 8px; color: var(--tally-mint); text-decoration: underline; font-size: 12px;">
+                View Carfax Report
+              </a>
+            ` : ''}
           </div>
         </div>
       ` : ''}

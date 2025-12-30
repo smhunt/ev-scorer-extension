@@ -160,6 +160,20 @@ const AutoTraderParser = {
     const vinMatch = vinEl?.textContent?.match(/[A-HJ-NPR-Z0-9]{17}/i);
     const vin = vinMatch ? vinMatch[0].toUpperCase() : '';
 
+    // Description - clean up marketing fluff
+    const descEl = document.querySelector('[data-testid="description"]') ||
+                   document.querySelector('[class*="description"]') ||
+                   document.querySelector('[class*="seller-notes"]');
+    const rawDesc = descEl?.textContent?.trim() || '';
+    const description = this.cleanDescription(rawDesc);
+
+    // Features - extract from feature list
+    const features = this.extractFeatures();
+
+    // Carfax report URL
+    const carfaxLink = document.querySelector('a[href*="carfax"], a[href*="CARFAX"]');
+    const carfaxUrl = carfaxLink?.href || '';
+
     return {
       year,
       make,
@@ -171,9 +185,85 @@ const AutoTraderParser = {
       location: listingLocation,
       photos: [...new Set(photos)].slice(0, 10),
       vin,
+      description,
+      features,
+      carfaxUrl,
       url: window.location.href,
       source: 'autotrader.ca'
     };
+  },
+
+  // Clean description - remove marketing fluff, keep real info
+  cleanDescription(raw) {
+    if (!raw) return '';
+
+    // Remove common marketing phrases
+    const marketingPhrases = [
+      /call (us )?(today|now)/gi,
+      /don'?t miss (out|this)/gi,
+      /won'?t last/gi,
+      /best (deal|price|offer)/gi,
+      /act (fast|now)/gi,
+      /limited time/gi,
+      /financing available/gi,
+      /we (also )?offer/gi,
+      /visit (us|our)/gi,
+      /contact us/gi,
+      /\b(amazing|incredible|unbelievable|fantastic)\b/gi,
+      /!\s*!+/g, // Multiple exclamation marks
+      /\*+/g, // Asterisks
+    ];
+
+    let cleaned = raw;
+    marketingPhrases.forEach(phrase => {
+      cleaned = cleaned.replace(phrase, '');
+    });
+
+    // Remove extra whitespace
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+    // Limit length
+    if (cleaned.length > 500) {
+      cleaned = cleaned.substring(0, 497) + '...';
+    }
+
+    return cleaned;
+  },
+
+  // Extract features into comparable array
+  extractFeatures() {
+    const features = [];
+    const featureSelectors = [
+      '[data-testid="features"] li',
+      '[class*="feature-list"] li',
+      '[class*="features"] li',
+      '[class*="highlights"] li',
+      '[class*="specs"] li'
+    ];
+
+    for (const selector of featureSelectors) {
+      const items = document.querySelectorAll(selector);
+      if (items.length > 0) {
+        items.forEach(item => {
+          const text = item.textContent?.trim();
+          if (text && text.length < 100) {
+            features.push(text);
+          }
+        });
+        break;
+      }
+    }
+
+    // Also check for common feature badges/tags
+    const badges = document.querySelectorAll('[class*="badge"], [class*="tag"], [class*="chip"]');
+    badges.forEach(badge => {
+      const text = badge.textContent?.trim();
+      if (text && text.length > 2 && text.length < 50 && !features.includes(text)) {
+        features.push(text);
+      }
+    });
+
+    return [...new Set(features)].slice(0, 20); // Dedupe and limit
   },
 
   // Parse title like "2023 Chevrolet Bolt EUV LT"
