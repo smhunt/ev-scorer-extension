@@ -80,16 +80,51 @@ const KijijiParser = {
     // Location
     const locationEl = document.querySelector('[class*="location"], [data-testid="location"]') ||
                        document.querySelector('address');
-    const location = locationEl?.textContent?.trim() || '';
+    const listingLocation = locationEl?.textContent?.trim() || '';
 
-    // Photos
-    const photos = Array.from(document.querySelectorAll('[class*="gallery"] img, [class*="image"] img'))
-      .map(img => {
-        const src = img.src || img.dataset.src || img.getAttribute('data-lazy');
-        // Get full size version
-        return src?.replace(/\$_\d+\.JPG/i, '$_57.JPG') || src;
-      })
-      .filter(src => src && !src.includes('placeholder') && !src.includes('avatar'));
+    // Photos - try multiple selectors for Kijiji's various layouts
+    const photoSelectors = [
+      '[data-testid="gallery"] img',
+      '[class*="gallery"] img',
+      '[class*="image-gallery"] img',
+      '[class*="heroImage"] img',
+      '[class*="thumbnails"] img',
+      'picture img',
+      '[class*="slider"] img'
+    ];
+
+    let photos = [];
+    for (const selector of photoSelectors) {
+      const imgs = document.querySelectorAll(selector);
+      if (imgs.length > 0) {
+        photos = Array.from(imgs)
+          .map(img => {
+            // Try various src attributes
+            let src = img.src || img.dataset.src || img.getAttribute('data-lazy') ||
+                      img.getAttribute('data-srcset')?.split(' ')[0] ||
+                      img.currentSrc;
+            if (!src) return null;
+
+            // Convert to absolute URL
+            if (src.startsWith('//')) src = 'https:' + src;
+            if (src.startsWith('/')) src = window.location.origin + src;
+
+            // Get larger version for Kijiji images
+            src = src.replace(/\$_\d+\.JPG/i, '$_57.JPG')
+                     .replace(/\/\$_\d+\./i, '/$_57.')
+                     .replace(/s-l\d+\./i, 's-l640.');
+
+            return src;
+          })
+          .filter(src => src &&
+                         !src.includes('placeholder') &&
+                         !src.includes('avatar') &&
+                         !src.includes('data:image') &&
+                         (src.includes('http') || src.includes('//')));
+
+        if (photos.length > 0) break;
+      }
+    }
 
     return {
       year,
@@ -99,10 +134,10 @@ const KijijiParser = {
       price,
       odo: parseInt(String(odo).replace(/[^0-9]/g, '')) || 0,
       dealer,
-      location,
+      location: listingLocation,
       color: attributes.colour || attributes.color || '',
-      photos: photos.slice(0, 10),
-      url: location.href,
+      photos: [...new Set(photos)].slice(0, 10), // Remove duplicates
+      url: window.location.href,
       source: 'kijiji.ca'
     };
   },

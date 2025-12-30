@@ -96,9 +96,16 @@
     closeHelpBtn.addEventListener('click', closeHelp);
     helpOverlay.addEventListener('click', closeHelp);
 
-    // Listen for storage changes
+    // Listen for messages from background
     chrome.runtime.onMessage.addListener((message) => {
       if (['CAR_ADDED', 'CAR_UPDATED', 'CAR_DELETED', 'DATA_IMPORTED', 'WEIGHTS_UPDATED'].includes(message.type)) {
+        loadData().then(render);
+      }
+    });
+
+    // Also listen for storage changes directly (more reliable for side panels)
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' && (changes.evscorer_cars || changes.evscorer_weights)) {
         loadData().then(render);
       }
     });

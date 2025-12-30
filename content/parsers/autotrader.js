@@ -90,12 +90,43 @@ const AutoTraderParser = {
     // Location
     const locationEl = document.querySelector('[data-testid="location"]') ||
                        document.querySelector('.location');
-    const location = locationEl?.textContent?.trim() || '';
+    const listingLocation = locationEl?.textContent?.trim() || '';
 
-    // Photos
-    const photos = Array.from(document.querySelectorAll('.gallery-image img, [class*="gallery"] img'))
-      .map(img => img.src || img.dataset.src)
-      .filter(src => src && !src.includes('placeholder'));
+    // Photos - try multiple selectors for AutoTrader's layout
+    const photoSelectors = [
+      '[data-testid="gallery"] img',
+      '.gallery-image img',
+      '[class*="gallery"] img',
+      '[class*="mediaviewer"] img',
+      '[class*="photo"] img',
+      'picture source',
+      'picture img'
+    ];
+
+    let photos = [];
+    for (const selector of photoSelectors) {
+      const elements = document.querySelectorAll(selector);
+      if (elements.length > 0) {
+        photos = Array.from(elements)
+          .map(el => {
+            let src = el.src || el.srcset?.split(' ')[0] || el.dataset.src ||
+                      el.dataset.lazy || el.getAttribute('data-srcset')?.split(' ')[0];
+            if (!src) return null;
+
+            // Convert to absolute URL
+            if (src.startsWith('//')) src = 'https:' + src;
+            if (src.startsWith('/')) src = window.location.origin + src;
+
+            return src;
+          })
+          .filter(src => src &&
+                         !src.includes('placeholder') &&
+                         !src.includes('data:image') &&
+                         src.includes('http'));
+
+        if (photos.length > 0) break;
+      }
+    }
 
     // VIN (if available)
     const vinEl = document.querySelector('[data-testid="vin"]') ||
@@ -111,10 +142,10 @@ const AutoTraderParser = {
       price,
       odo,
       dealer,
-      location,
-      photos: photos.slice(0, 10), // Limit to 10 photos
+      location: listingLocation,
+      photos: [...new Set(photos)].slice(0, 10),
       vin,
-      url: location.href,
+      url: window.location.href,
       source: 'autotrader.ca'
     };
   },
