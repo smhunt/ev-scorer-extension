@@ -18,11 +18,23 @@
   let extractedData = null;
   let overlayElement = null;
   let isAlreadySaved = false;
+  let isEVListing = false;
+  let currentMode = 'all'; // 'ev' or 'all'
 
   // Find the right parser for current site
   function detectParser() {
     const hostname = location.hostname.replace('www.', '');
     return parsers.find(p => hostname.includes(p.hostname));
+  }
+
+  // Get current mode setting
+  async function getMode() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+      return response?.settings?.mode || 'all';
+    } catch (e) {
+      return 'all';
+    }
   }
 
   // Initialize on page load
@@ -36,14 +48,23 @@
     // Small delay for dynamic content to load
     await new Promise(r => setTimeout(r, 1000));
 
+    // Get mode setting
+    currentMode = await getMode();
+
     // Check if it's an EV
-    if (!currentParser.isEVListing()) return;
+    isEVListing = currentParser.isEVListing();
+
+    // In EV-only mode, skip non-EV listings
+    if (currentMode === 'ev' && !isEVListing) return;
 
     // Extract data
     extractedData = currentParser.extractData();
     if (!extractedData) return;
 
-    console.log('[EV Scorer] Detected EV listing:', extractedData);
+    // Add isEV flag to extracted data
+    extractedData.isEV = isEVListing;
+
+    console.log('[Car Scorer] Detected listing:', extractedData, 'isEV:', isEVListing);
 
     // Check if already saved
     try {

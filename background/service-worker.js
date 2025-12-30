@@ -24,7 +24,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       [STORAGE_KEYS.SETTINGS]: {
         autoDetect: true,
         showOverlay: true,
-        notifyPriceDrops: true
+        notifyPriceDrops: true,
+        mode: 'all' // 'ev' = EV only, 'all' = all vehicles
       }
     });
 
@@ -74,6 +75,12 @@ async function handleMessage(message, sender) {
 
     case 'IMPORT_DATA':
       return await importData(message.data);
+
+    case 'GET_SETTINGS':
+      return await getSettings();
+
+    case 'SAVE_SETTINGS':
+      return await saveSettings(message.settings);
 
     default:
       return { error: 'Unknown message type' };
@@ -181,6 +188,27 @@ async function saveWeights(weights) {
   await chrome.storage.local.set({ [STORAGE_KEYS.WEIGHTS]: weights });
   notifyAllTabs({ type: 'WEIGHTS_UPDATED', weights });
   return { success: true };
+}
+
+// Default settings
+const DEFAULT_SETTINGS = {
+  autoDetect: true,
+  showOverlay: true,
+  notifyPriceDrops: true,
+  mode: 'all' // 'ev' = EV only, 'all' = all vehicles
+};
+
+async function getSettings() {
+  const result = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
+  return { settings: { ...DEFAULT_SETTINGS, ...result[STORAGE_KEYS.SETTINGS] } };
+}
+
+async function saveSettings(settings) {
+  const current = await getSettings();
+  const updated = { ...current.settings, ...settings };
+  await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: updated });
+  notifyAllTabs({ type: 'SETTINGS_UPDATED', settings: updated });
+  return { success: true, settings: updated };
 }
 
 async function exportData() {
