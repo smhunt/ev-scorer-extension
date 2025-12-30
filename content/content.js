@@ -114,7 +114,7 @@
           </div>
           ${extractedData.photos?.length ? `
             <div class="ev-scorer-preview-photos">
-              ${extractedData.photos.slice(0, 3).map(src => `<img src="${src}" alt="Photo">`).join('')}
+              ${extractedData.photos.slice(0, 3).map(src => `<img src="${src}" alt="Photo" referrerpolicy="no-referrer">`).join('')}
               ${extractedData.photos.length > 3 ? `<span>+${extractedData.photos.length - 3} more</span>` : ''}
             </div>
           ` : ''}
@@ -162,12 +162,82 @@
     });
   }
 
+  // Convert image URL to base64 thumbnail
+  async function imageToThumbnail(url, maxSize = 200) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.referrerPolicy = 'no-referrer';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Scale down to maxSize while maintaining aspect ratio
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to base64 JPEG (smaller than PNG)
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        } catch (e) {
+          console.warn('[EV Scorer] Canvas error for', url, e);
+          resolve(null);
+        }
+      };
+
+      img.onerror = () => {
+        console.warn('[EV Scorer] Failed to load image:', url);
+        resolve(null);
+      };
+
+      // Timeout after 5 seconds
+      setTimeout(() => resolve(null), 5000);
+
+      img.src = url;
+    });
+  }
+
+  // Convert all photos to thumbnails
+  async function convertPhotosToThumbnails(photos) {
+    if (!photos || photos.length === 0) return [];
+
+    // Only process first 3 photos to save storage space
+    const photosToConvert = photos.slice(0, 3);
+
+    const thumbnails = await Promise.all(
+      photosToConvert.map(url => imageToThumbnail(url))
+    );
+
+    return thumbnails.filter(t => t !== null);
+  }
+
   // Save listing to storage
   async function saveListing() {
     try {
+      // Convert photos to thumbnails before saving
+      const thumbnails = await convertPhotosToThumbnails(extractedData.photos);
+
+      const dataToSave = {
+        ...extractedData,
+        photos: thumbnails, // Replace URLs with base64 thumbnails
+        originalPhotoUrls: extractedData.photos // Keep original URLs as backup
+      };
+
       const response = await chrome.runtime.sendMessage({
         type: 'SAVE_CAR',
-        car: extractedData
+        car: dataToSave
       });
 
       if (response?.success) {

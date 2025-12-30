@@ -14,6 +14,7 @@
   let cars = [];
   let weights = DEFAULT_WEIGHTS;
   let editingCarId = null;
+  let currentMode = 'all'; // 'ev' or 'all'
 
   // DOM Elements
   const carList = document.getElementById('car-list');
@@ -33,13 +34,17 @@
   const helpPanel = document.getElementById('help-panel');
   const helpOverlay = document.getElementById('help-overlay');
   const closeHelpBtn = document.getElementById('close-help-btn');
+  const modeToggle = document.getElementById('mode-toggle');
+  const modeLabel = document.getElementById('mode-label');
 
   // Initialize
   async function init() {
     await loadData();
+    await loadSettings();
     setupEventListeners();
     checkPendingData();
     render();
+    updateModeUI();
   }
 
   // Load cars and weights from storage
@@ -54,6 +59,43 @@
       console.error('Load data error:', e);
       cars = [];
       weights = DEFAULT_WEIGHTS;
+    }
+  }
+
+  // Load settings from storage
+  async function loadSettings() {
+    try {
+      const result = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+      currentMode = result?.settings?.mode || 'all';
+    } catch (e) {
+      console.error('Load settings error:', e);
+      currentMode = 'all';
+    }
+  }
+
+  // Update mode toggle UI
+  function updateModeUI() {
+    if (currentMode === 'ev') {
+      modeToggle.classList.add('ev-mode');
+      modeLabel.textContent = 'EV';
+    } else {
+      modeToggle.classList.remove('ev-mode');
+      modeLabel.textContent = 'All';
+    }
+  }
+
+  // Toggle between EV and All modes
+  async function toggleMode() {
+    currentMode = currentMode === 'ev' ? 'all' : 'ev';
+    updateModeUI();
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'SAVE_SETTINGS',
+        settings: { mode: currentMode }
+      });
+    } catch (e) {
+      console.error('Save mode error:', e);
     }
   }
 
@@ -95,6 +137,9 @@
     helpBtn.addEventListener('click', openHelp);
     closeHelpBtn.addEventListener('click', closeHelp);
     helpOverlay.addEventListener('click', closeHelp);
+
+    // Mode toggle
+    modeToggle.addEventListener('click', toggleMode);
 
     // Listen for messages from background
     chrome.runtime.onMessage.addListener((message) => {
@@ -205,7 +250,10 @@
           <div class="car-card-header">
             <div class="car-rank ${rankClass}">${rank}</div>
             <div class="car-info">
-              <div class="car-title">${car.year} ${car.make} ${car.model}</div>
+              <div class="car-title">
+                ${car.year} ${car.make} ${car.model}
+                ${car.isEV ? '<span class="ev-badge">EV</span>' : ''}
+              </div>
               ${car.trim ? `<span class="car-trim">${car.trim}</span>` : ''}
             </div>
             <div class="car-score">
@@ -214,7 +262,7 @@
             </div>
           </div>
           ${car.photos?.length ? `
-            <div class="car-photos">
+            <div class="car-photos" data-url="${car.url || ''}" title="Click to view listing">
               ${car.photos.slice(0, 3).map(src => `<img src="${src}" alt="Photo" loading="lazy" onerror="this.style.display='none'">`).join('')}
               ${car.photos.length > 3 ? `<span class="photos-more">+${car.photos.length - 3}</span>` : ''}
             </div>
@@ -276,6 +324,15 @@
       card.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
         e.stopPropagation();
         deleteCar(carId);
+      });
+
+      // Photos click - open listing URL
+      card.querySelector('.car-photos')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const url = e.currentTarget.dataset.url;
+        if (url) {
+          chrome.tabs.create({ url });
+        }
       });
 
       card.addEventListener('click', () => {

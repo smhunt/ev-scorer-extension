@@ -190,7 +190,7 @@ const AutoTraderParser = {
       location: jsonLd.seller?.address?.addressLocality || '',
       photos: jsonLd.image ? (Array.isArray(jsonLd.image) ? jsonLd.image : [jsonLd.image]) : [],
       vin: jsonLd.vehicleIdentificationNumber || '',
-      url: location.href,
+      url: window.location.href,
       source: 'autotrader.ca'
     };
   }

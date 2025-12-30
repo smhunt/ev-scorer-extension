@@ -210,7 +210,7 @@ const KijijiParser = {
       dealer: data.seller?.name || 'Private Seller',
       location: data.seller?.address?.addressLocality || '',
       photos: data.image ? (Array.isArray(data.image) ? data.image : [data.image]) : [],
-      url: location.href,
+      url: window.location.href,
       source: 'kijiji.ca'
     };
   }
