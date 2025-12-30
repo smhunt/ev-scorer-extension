@@ -6,8 +6,8 @@ const ClutchParser = {
   hostname: 'clutch.ca',
 
   isListingPage() {
-    // Clutch URLs: /vehicles/2023-chevrolet-bolt-ev-123456
-    return /\/vehicles\/[\w-]+-\d+/.test(location.pathname);
+    // Clutch URLs: /vehicles/76427 or /vehicles/2023-chevrolet-bolt-ev-123456
+    return /\/vehicles\/[\w-]*\d+/.test(location.pathname);
   },
 
   isEVListing() {
@@ -60,9 +60,30 @@ const ClutchParser = {
     const specs = this.extractSpecs();
 
     // Photos from gallery
-    const photos = Array.from(document.querySelectorAll('[class*="gallery"] img, [class*="carousel"] img'))
-      .map(img => img.src || img.dataset.src)
-      .filter(src => src && src.includes('clutch') && !src.includes('placeholder'));
+    const photoSelectors = [
+      '[class*="gallery"] img',
+      '[class*="carousel"] img',
+      '[class*="Gallery"] img',
+      '[class*="slider"] img',
+      'picture img'
+    ];
+
+    let photos = [];
+    for (const selector of photoSelectors) {
+      const imgs = document.querySelectorAll(selector);
+      if (imgs.length > 0) {
+        photos = Array.from(imgs)
+          .map(img => {
+            let src = img.src || img.dataset.src || img.currentSrc;
+            if (!src) return null;
+            if (src.startsWith('//')) src = 'https:' + src;
+            if (src.startsWith('/')) src = window.location.origin + src;
+            return src;
+          })
+          .filter(src => src && !src.includes('placeholder') && !src.includes('data:image'));
+        if (photos.length > 0) break;
+      }
+    }
 
     return {
       year,
@@ -74,8 +95,8 @@ const ClutchParser = {
       color: specs.colour || specs.color || '',
       dealer: 'Clutch',
       location: specs.location || 'Online',
-      photos: photos.slice(0, 10),
-      url: location.href,
+      photos: [...new Set(photos)].slice(0, 10),
+      url: window.location.href,
       source: 'clutch.ca'
     };
   },
@@ -134,7 +155,7 @@ const ClutchParser = {
       location: vehicle.location?.city || 'Online',
       photos: vehicle.images || vehicle.photos || [],
       vin: vehicle.vin || '',
-      url: location.href,
+      url: window.location.href,
       source: 'clutch.ca'
     };
   }
