@@ -90,9 +90,26 @@ const CarGurusParser = {
     const dealerEl = document.querySelector('[class*="dealer-name"], [data-cg-ft="dealer"]');
     const dealer = dealerEl?.textContent?.trim() || '';
 
-    // Location
-    const locationEl = document.querySelector('[class*="dealer-location"], [class*="address"]');
-    const location = locationEl?.textContent?.trim() || '';
+    // Location - try multiple selectors for CarGurus
+    const locationSelectors = [
+      '[class*="dealer-location"]',
+      '[class*="dealerLocation"]',
+      '[class*="dealer-address"]',
+      '[class*="address"]',
+      '[data-cg-ft="dealer-address"]',
+      '[itemprop="address"]'
+    ];
+
+    let listingLocation = '';
+    for (const selector of locationSelectors) {
+      const el = document.querySelector(selector);
+      if (el?.textContent?.trim()) {
+        listingLocation = el.textContent.trim()
+          .replace(/\s+/g, ' ')
+          .replace(/^Address:?\s*/i, '');
+        break;
+      }
+    }
 
     // Photos
     const photos = Array.from(document.querySelectorAll('[class*="gallery"] img, [class*="media"] img'))
@@ -110,10 +127,10 @@ const CarGurusParser = {
       price,
       odo,
       dealer,
-      location,
+      location: listingLocation,
       photos: photos.slice(0, 10),
       dealRating,
-      url: location.href,
+      url: window.location.href,
       source: 'cargurus.ca'
     };
   },
@@ -153,7 +170,7 @@ const CarGurusParser = {
       dealer: data.seller?.name || '',
       location: data.seller?.address?.addressLocality || '',
       photos: data.image ? (Array.isArray(data.image) ? data.image : [data.image]) : [],
-      url: location.href,
+      url: window.location.href,
       source: 'cargurus.ca'
     };
   },
@@ -167,10 +184,10 @@ const CarGurusParser = {
       price: data.price || data.listPrice || 0,
       odo: data.mileage || data.odometer || 0,
       dealer: data.dealerName || '',
-      location: data.dealerCity || '',
+      location: data.dealerCity || data.dealerLocation || '',
       photos: data.images || [],
       dealRating: data.dealRating || '',
-      url: location.href,
+      url: window.location.href,
       source: 'cargurus.ca'
     };
   }

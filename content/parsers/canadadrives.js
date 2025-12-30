@@ -63,6 +63,23 @@ const CanadaDrivesParser = {
       .map(img => img.src || img.dataset.src)
       .filter(src => src && !src.includes('placeholder'));
 
+    // Location - try to find vehicle location
+    let listingLocation = specs.location || '';
+    if (!listingLocation) {
+      const locationSelectors = [
+        '[class*="location"]',
+        '[class*="city"]',
+        '[class*="address"]'
+      ];
+      for (const selector of locationSelectors) {
+        const el = document.querySelector(selector);
+        if (el?.textContent?.trim()) {
+          listingLocation = el.textContent.trim();
+          break;
+        }
+      }
+    }
+
     return {
       year,
       make,
@@ -72,9 +89,9 @@ const CanadaDrivesParser = {
       odo: specs.odometer || specs.kilometres || 0,
       color: specs.colour || specs.color || '',
       dealer: 'Canada Drives',
-      location: 'Online',
+      location: listingLocation || 'Online',
       photos: photos.slice(0, 10),
-      url: location.href,
+      url: window.location.href,
       source: 'canadadrives.ca'
     };
   },
@@ -131,10 +148,10 @@ const CanadaDrivesParser = {
       odo: vehicle.odometer || vehicle.kilometres || 0,
       color: vehicle.exteriorColour || vehicle.color || '',
       dealer: 'Canada Drives',
-      location: vehicle.location || 'Online',
+      location: vehicle.location?.city || vehicle.city || vehicle.location || 'Online',
       photos: vehicle.images || vehicle.photos || [],
       vin: vehicle.vin || '',
-      url: location.href,
+      url: window.location.href,
       source: 'canadadrives.ca'
     };
   }

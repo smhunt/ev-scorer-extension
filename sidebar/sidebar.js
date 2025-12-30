@@ -36,6 +36,15 @@
   const closeHelpBtn = document.getElementById('close-help-btn');
   const modeToggle = document.getElementById('mode-toggle');
   const modeLabel = document.getElementById('mode-label');
+  const detailPanel = document.getElementById('detail-panel');
+  const detailOverlay = document.getElementById('detail-overlay');
+  const closeDetailBtn = document.getElementById('close-detail-btn');
+  const detailEditBtn = document.getElementById('detail-edit-btn');
+  const detailTitle = document.getElementById('detail-title');
+  const detailContent = document.getElementById('detail-content');
+
+  // Currently viewing car
+  let viewingCarId = null;
 
   // Initialize
   async function init() {
@@ -140,6 +149,18 @@
 
     // Mode toggle
     modeToggle.addEventListener('click', toggleMode);
+
+    // Detail panel
+    closeDetailBtn.addEventListener('click', closeDetail);
+    detailOverlay.addEventListener('click', closeDetail);
+    detailEditBtn.addEventListener('click', () => {
+      const car = cars.find(c => c.id === viewingCarId);
+      if (car) {
+        closeDetail();
+        openFormWithData(car);
+        editingCarId = viewingCarId;
+      }
+    });
 
     // Listen for messages from background
     chrome.runtime.onMessage.addListener((message) => {
@@ -338,12 +359,144 @@
       card.addEventListener('click', () => {
         const car = cars.find(c => c.id === carId);
         if (car) {
-          openFormWithData(car);
-          editingCarId = carId;
+          openDetail(car);
         }
       });
     });
   }
+
+  // Open detail panel
+  function openDetail(car) {
+    viewingCarId = car.id;
+    const score = calculateScore(car);
+    const scoreClass = score >= 70 ? 'high' : (score >= 40 ? 'medium' : 'low');
+
+    detailTitle.textContent = `${car.year} ${car.make} ${car.model}`;
+
+    detailContent.innerHTML = `
+      ${car.photos?.length ? `
+        <div class="detail-photos">
+          ${car.photos.map(src => `<img src="${src}" alt="Photo" onclick="window.open('${car.url}', '_blank')">`).join('')}
+        </div>
+      ` : ''}
+
+      <div class="detail-section">
+        <div class="detail-score">
+          <div class="detail-score-value ${scoreClass}">${score}</div>
+          <div class="detail-score-label">Value Score<br>out of 100</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Pricing</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Price</span>
+            <span class="detail-value highlight">$${car.price?.toLocaleString() || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Odometer</span>
+            <span class="detail-value">${car.odo?.toLocaleString() || 'N/A'} km</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Vehicle Info</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Year</span>
+            <span class="detail-value">${car.year || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Make</span>
+            <span class="detail-value">${car.make || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Model</span>
+            <span class="detail-value">${car.model || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Trim</span>
+            <span class="detail-value">${car.trim || 'N/A'}</span>
+          </div>
+          ${car.range ? `
+            <div class="detail-item">
+              <span class="detail-label">Range</span>
+              <span class="detail-value">${car.range} km</span>
+            </div>
+          ` : ''}
+          ${car.heatPump !== undefined ? `
+            <div class="detail-item">
+              <span class="detail-label">Heat Pump</span>
+              <span class="detail-value">${car.heatPump ? 'Yes' : 'No'}</span>
+            </div>
+          ` : ''}
+          ${car.isEV ? `
+            <div class="detail-item">
+              <span class="detail-label">Type</span>
+              <span class="detail-value" style="color: var(--tally-mint)">Electric</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Location</div>
+        <div class="detail-grid">
+          <div class="detail-item full-width">
+            <span class="detail-label">Dealer</span>
+            <span class="detail-value">${car.dealer || 'N/A'}</span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">Location</span>
+            <span class="detail-value">${car.location || 'N/A'}</span>
+          </div>
+        </div>
+      </div>
+
+      ${car.url ? `
+        <div class="detail-section">
+          <div class="detail-section-title">Source</div>
+          <div class="detail-item full-width">
+            <span class="detail-label">${car.source || 'Website'}</span>
+            <a href="${car.url}" target="_blank" class="detail-value" style="color: var(--tally-blue); text-decoration: underline; word-break: break-all; font-size: 12px;">
+              View Original Listing
+            </a>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="detail-actions">
+        <button class="btn-star ${car.starred ? 'active' : ''}" onclick="window.toggleStarFromDetail(${car.id})">
+          ${car.starred ? '★ Starred' : '☆ Star'}
+        </button>
+        <button class="btn-delete" onclick="window.deleteFromDetail(${car.id})">Delete</button>
+      </div>
+    `;
+
+    detailPanel.classList.add('visible');
+    detailOverlay.classList.add('visible');
+  }
+
+  // Close detail panel
+  function closeDetail() {
+    detailPanel.classList.remove('visible');
+    detailOverlay.classList.remove('visible');
+    viewingCarId = null;
+  }
+
+  // Expose functions for inline onclick handlers
+  window.toggleStarFromDetail = async (carId) => {
+    await toggleStar(carId);
+    const car = cars.find(c => c.id === carId);
+    if (car) openDetail(car); // Refresh detail view
+  };
+
+  window.deleteFromDetail = async (carId) => {
+    await deleteCar(carId);
+    closeDetail();
+  };
 
   // Toggle star status
   async function toggleStar(carId) {

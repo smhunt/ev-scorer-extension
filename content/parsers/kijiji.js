@@ -77,10 +77,40 @@ const KijijiParser = {
                      document.querySelector('[data-testid="seller-info"]');
     const dealer = sellerEl?.textContent?.trim() || 'Private Seller';
 
-    // Location
-    const locationEl = document.querySelector('[class*="location"], [data-testid="location"]') ||
-                       document.querySelector('address');
-    const listingLocation = locationEl?.textContent?.trim() || '';
+    // Location - try multiple selectors for Kijiji
+    const locationSelectors = [
+      '[data-testid="location"]',
+      '[class*="location"]',
+      '[class*="adLocation"]',
+      '[class*="ad-location"]',
+      '[itemprop="address"]',
+      'address',
+      '[class*="seller-location"]',
+      '[class*="address"]'
+    ];
+
+    let listingLocation = '';
+    for (const selector of locationSelectors) {
+      const el = document.querySelector(selector);
+      if (el?.textContent?.trim()) {
+        listingLocation = el.textContent.trim()
+          .replace(/\s+/g, ' ')  // Normalize whitespace
+          .replace(/^Location:?\s*/i, ''); // Remove "Location:" prefix
+        break;
+      }
+    }
+
+    // Also check breadcrumbs for location (Kijiji often has city in breadcrumbs)
+    if (!listingLocation) {
+      const breadcrumbs = document.querySelectorAll('[class*="breadcrumb"] a, nav[aria-label*="breadcrumb"] a');
+      if (breadcrumbs.length > 1) {
+        // Second-to-last breadcrumb is often the city
+        const cityBreadcrumb = breadcrumbs[breadcrumbs.length - 2];
+        if (cityBreadcrumb?.textContent) {
+          listingLocation = cityBreadcrumb.textContent.trim();
+        }
+      }
+    }
 
     // Photos - try multiple selectors for Kijiji's various layouts
     const photoSelectors = [

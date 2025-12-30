@@ -120,6 +120,22 @@ const ClutchParser = {
       specs.odometer = parseInt(odoMatch[1].replace(/,/g, ''));
     }
 
+    // Extract location - Clutch shows delivery locations
+    const locationSelectors = [
+      '[class*="location"]',
+      '[class*="delivery"]',
+      '[class*="available-in"]',
+      '[class*="city"]'
+    ];
+
+    for (const selector of locationSelectors) {
+      const el = document.querySelector(selector);
+      if (el?.textContent?.trim() && !el.textContent.includes('Delivery')) {
+        specs.location = el.textContent.trim();
+        break;
+      }
+    }
+
     return specs;
   },
 

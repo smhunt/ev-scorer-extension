@@ -87,10 +87,36 @@ const AutoTraderParser = {
                      document.querySelector('[class*="dealer"]');
     const dealer = dealerEl?.textContent?.trim() || '';
 
-    // Location
-    const locationEl = document.querySelector('[data-testid="location"]') ||
-                       document.querySelector('.location');
-    const listingLocation = locationEl?.textContent?.trim() || '';
+    // Location - try multiple selectors for AutoTrader
+    const locationSelectors = [
+      '[data-testid="location"]',
+      '[data-testid="dealer-location"]',
+      '[class*="dealer-address"]',
+      '[class*="dealerAddress"]',
+      '[class*="location"]',
+      'address',
+      '[itemprop="address"]'
+    ];
+
+    let listingLocation = '';
+    for (const selector of locationSelectors) {
+      const el = document.querySelector(selector);
+      if (el?.textContent?.trim()) {
+        listingLocation = el.textContent.trim();
+        break;
+      }
+    }
+
+    // Also try to extract from URL (AutoTrader URLs contain city/province)
+    // Format: /a/make/model/city/province/12345
+    if (!listingLocation) {
+      const urlMatch = window.location.pathname.match(/\/a\/[^\/]+\/[^\/]+\/([^\/]+)\/([^\/]+)\//);
+      if (urlMatch) {
+        const city = urlMatch[1].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const province = urlMatch[2].toUpperCase();
+        listingLocation = `${city}, ${province}`;
+      }
+    }
 
     // Photos - try multiple selectors for AutoTrader's layout
     const photoSelectors = [
