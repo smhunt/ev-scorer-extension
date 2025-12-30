@@ -1,0 +1,220 @@
+/* EV Value Scorer - Overlay Styles */
+
+#ev-scorer-overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.ev-scorer-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #635bff 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(99, 91, 255, 0.4);
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ev-scorer-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(99, 91, 255, 0.5);
+}
+
+.ev-scorer-button.saved {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+.ev-scorer-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ev-scorer-preview {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 320px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.ev-scorer-preview.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.ev-scorer-preview-header {
+  padding: 16px;
+  background: linear-gradient(135deg, #635bff 0%, #7c3aed 100%);
+  color: white;
+}
+
+.ev-scorer-preview-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ev-scorer-preview-trim {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.ev-scorer-preview-details {
+  padding: 16px;
+}
+
+.ev-scorer-preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.ev-scorer-preview-row:last-child {
+  border-bottom: none;
+}
+
+.ev-scorer-preview-row span {
+  color: #64748b;
+}
+
+.ev-scorer-preview-row strong {
+  color: #1e293b;
+}
+
+.ev-scorer-preview-photos {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.ev-scorer-preview-photos img {
+  width: 60px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ev-scorer-preview-photos span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ev-scorer-preview-actions {
+  padding: 16px;
+  background: #f8fafc;
+  display: flex;
+  gap: 8px;
+}
+
+.ev-scorer-btn-primary {
+  flex: 1;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #635bff 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ev-scorer-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 91, 255, 0.3);
+}
+
+.ev-scorer-btn-primary:disabled {
+  background: #10b981;
+  cursor: default;
+}
+
+.ev-scorer-btn-secondary {
+  flex: 1;
+  padding: 10px 16px;
+  background: white;
+  color: #635bff;
+  border: 2px solid #635bff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ev-scorer-btn-secondary:hover {
+  background: #635bff;
+  color: white;
+}
+
+/* Toast notifications */
+.ev-scorer-toast {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  padding: 12px 24px;
+  background: #1e293b;
+  color: white;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 9999999;
+}
+
+.ev-scorer-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ev-scorer-toast.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ev-scorer-toast.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  #ev-scorer-overlay {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .ev-scorer-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ev-scorer-preview {
+    width: 100%;
+    right: 0;
+    left: 0;
+  }
+}

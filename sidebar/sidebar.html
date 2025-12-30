@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EV Value Scorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          <span>EV Scorer</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn-icon" id="refresh-btn" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+        <button class="btn-icon" id="settings-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Add Car Form (initially hidden) -->
+    <div class="add-form-container" id="add-form-container">
+      <div class="add-form">
+        <div class="form-header">
+          <h3 id="form-title">Add Listing</h3>
+          <button class="btn-icon" id="close-form-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <form id="car-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Year</label>
+              <input type="number" id="form-year" min="2015" max="2026" value="2024" required>
+            </div>
+            <div class="form-group">
+              <label>Make</label>
+              <input type="text" id="form-make" placeholder="Chevrolet" required>
+            </div>
+            <div class="form-group full-width">
+              <label>Model</label>
+              <input type="text" id="form-model" placeholder="Bolt EV" required>
+            </div>
+            <div class="form-group">
+              <label>Trim</label>
+              <input type="text" id="form-trim" placeholder="LT">
+            </div>
+            <div class="form-group">
+              <label>Trim Level (1-5)</label>
+              <input type="number" id="form-trimLevel" min="1" max="5" value="2">
+            </div>
+            <div class="form-group">
+              <label>Price ($)</label>
+              <input type="number" id="form-price" placeholder="25000" required>
+            </div>
+            <div class="form-group">
+              <label>Odometer (km)</label>
+              <input type="number" id="form-odo" placeholder="50000" required>
+            </div>
+            <div class="form-group">
+              <label>Range (km)</label>
+              <input type="number" id="form-range" placeholder="400">
+            </div>
+            <div class="form-group">
+              <label>Length (in)</label>
+              <input type="number" id="form-length" placeholder="170">
+            </div>
+            <div class="form-group full-width">
+              <label>Dealer</label>
+              <input type="text" id="form-dealer" placeholder="Dealer name">
+            </div>
+            <div class="form-group full-width">
+              <label>Listing URL</label>
+              <input type="url" id="form-url" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="form-location" placeholder="City">
+            </div>
+            <div class="form-group">
+              <label>Distance (1-10)</label>
+              <input type="number" id="form-distance" min="1" max="10" value="5">
+            </div>
+            <div class="form-group toggle-group">
+              <label>Heat Pump</label>
+              <button type="button" class="toggle" id="form-heatPump" data-value="true">Yes</button>
+            </div>
+            <div class="form-group">
+              <label>Remote Start</label>
+              <select id="form-remoteStart">
+                <option value="Fob, App">Fob + App</option>
+                <option value="App">App</option>
+                <option value="Fob">Fob</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="cancel-form-btn">Cancel</button>
+            <button type="submit" class="btn-primary" id="submit-form-btn">Save Listing</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat">
+          <span class="stat-value" id="total-cars">0</span>
+          <span class="stat-label">Listings</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="starred-cars">0</span>
+          <span class="stat-label">Starred</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="avg-score">-</span>
+          <span class="stat-label">Avg Score</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn-primary btn-add" id="add-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add Listing
+        </button>
+      </div>
+
+      <!-- Car List -->
+      <div class="car-list" id="car-list">
+        <!-- Cars will be rendered here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="3" width="22" height="18" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <h3>No listings yet</h3>
+        <p>Browse AutoTrader, Kijiji, or other car sites to save EV listings.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>

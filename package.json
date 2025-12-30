@@ -1,0 +1,15 @@
+{
+  "name": "ev-scorer-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for EV Value Scorer - save and compare EV listings from Canadian car sites",
+  "scripts": {
+    "icons": "node scripts/generate-icons.js",
+    "build": "echo 'Extension ready to load in Chrome'"
+  },
+  "keywords": ["chrome-extension", "ev", "electric-vehicle", "car-comparison"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
+}
