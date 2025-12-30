@@ -213,11 +213,9 @@
   async function convertPhotosToThumbnails(photos) {
     if (!photos || photos.length === 0) return [];
 
-    // Only process first 3 photos to save storage space
-    const photosToConvert = photos.slice(0, 3);
-
+    // Convert all available photos (but keep them small - 200px, 60% quality)
     const thumbnails = await Promise.all(
-      photosToConvert.map(url => imageToThumbnail(url))
+      photos.map(url => imageToThumbnail(url))
     );
 
     return thumbnails.filter(t => t !== null);
