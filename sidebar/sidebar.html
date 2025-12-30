@@ -30,6 +30,13 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
         </button>
+        <button class="btn-icon" id="help-btn" title="Help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
         <button class="btn-icon" id="settings-btn" title="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
@@ -38,6 +45,76 @@
         </button>
       </div>
     </header>
+
+    <!-- Help Panel (slide-out) -->
+    <div class="help-panel" id="help-panel">
+      <div class="help-panel-header">
+        <h3>How to Use EV Scorer</h3>
+        <button class="btn-icon" id="close-help-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="help-panel-content">
+        <section class="help-section">
+          <h4>Saving Listings</h4>
+          <p>When browsing supported car sites, a purple <strong>"Save to EV Scorer"</strong> button appears on EV listing pages. Click it to save the listing.</p>
+          <p class="help-tip">Tip: Use <kbd>Alt+S</kbd> to quick-save any page.</p>
+        </section>
+
+        <section class="help-section">
+          <h4>Supported Sites</h4>
+          <ul class="help-list">
+            <li>AutoTrader.ca</li>
+            <li>Kijiji.ca</li>
+            <li>Clutch.ca</li>
+            <li>CarGurus.ca</li>
+            <li>CanadaDrives.ca</li>
+          </ul>
+        </section>
+
+        <section class="help-section">
+          <h4>Understanding Scores</h4>
+          <p>Each vehicle is scored 0-100 using Multi-Criteria Decision Analysis (MCDA). Higher scores indicate better value.</p>
+          <div class="score-legend">
+            <div class="score-item"><span class="score-dot high"></span> 70+ Excellent</div>
+            <div class="score-item"><span class="score-dot medium"></span> 40-69 Good</div>
+            <div class="score-item"><span class="score-dot low"></span> &lt;40 Fair</div>
+          </div>
+        </section>
+
+        <section class="help-section">
+          <h4>Scoring Criteria</h4>
+          <table class="help-table">
+            <tr><td>Price</td><td>35%</td><td>Lower is better</td></tr>
+            <tr><td>Odometer</td><td>16%</td><td>Lower is better</td></tr>
+            <tr><td>Range</td><td>12%</td><td>Higher is better</td></tr>
+            <tr><td>Year</td><td>10%</td><td>Newer is better</td></tr>
+            <tr><td>Trim Level</td><td>10%</td><td>Higher is better</td></tr>
+            <tr><td>Distance</td><td>10%</td><td>Closer is better</td></tr>
+            <tr><td>Remote Start</td><td>10%</td><td>Fob+App best</td></tr>
+            <tr><td>Length</td><td>10%</td><td>Shorter is better</td></tr>
+            <tr><td>Damage</td><td>5%</td><td>Less is better</td></tr>
+            <tr><td>Heat Pump</td><td>5%</td><td>Yes is better</td></tr>
+          </table>
+        </section>
+
+        <section class="help-section">
+          <h4>Keyboard Shortcuts</h4>
+          <div class="shortcut-list">
+            <div class="shortcut"><kbd>Alt+E</kbd> Open popup</div>
+            <div class="shortcut"><kbd>Alt+S</kbd> Quick save</div>
+          </div>
+        </section>
+
+        <section class="help-section">
+          <h4>Data & Privacy</h4>
+          <p>All data is stored locally in your browser. Use Export/Import in the popup to backup your listings.</p>
+        </section>
+      </div>
+    </div>
+    <div class="help-overlay" id="help-overlay"></div>
 
     <!-- Add Car Form (initially hidden) -->
     <div class="add-form-container" id="add-form-container">

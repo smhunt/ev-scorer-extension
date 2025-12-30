@@ -29,6 +29,10 @@
   const formTitle = document.getElementById('form-title');
   const submitFormBtn = document.getElementById('submit-form-btn');
   const refreshBtn = document.getElementById('refresh-btn');
+  const helpBtn = document.getElementById('help-btn');
+  const helpPanel = document.getElementById('help-panel');
+  const helpOverlay = document.getElementById('help-overlay');
+  const closeHelpBtn = document.getElementById('close-help-btn');
 
   // Initialize
   async function init() {
@@ -86,6 +90,11 @@
       btn.dataset.value = !current;
       btn.textContent = !current ? 'Yes' : 'No';
     });
+
+    // Help panel
+    helpBtn.addEventListener('click', openHelp);
+    closeHelpBtn.addEventListener('click', closeHelp);
+    helpOverlay.addEventListener('click', closeHelp);
 
     // Listen for storage changes
     chrome.runtime.onMessage.addListener((message) => {
@@ -197,6 +206,12 @@
               <div class="score-label">Score</div>
             </div>
           </div>
+          ${car.photos?.length ? `
+            <div class="car-photos">
+              ${car.photos.slice(0, 3).map(src => `<img src="${src}" alt="Photo" loading="lazy" onerror="this.style.display='none'">`).join('')}
+              ${car.photos.length > 3 ? `<span class="photos-more">+${car.photos.length - 3}</span>` : ''}
+            </div>
+          ` : ''}
           <div class="car-details">
             <div class="car-detail">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -342,6 +357,18 @@
     addFormContainer.classList.remove('visible');
     editingCarId = null;
     carForm.reset();
+  }
+
+  // Open help panel
+  function openHelp() {
+    helpPanel.classList.add('visible');
+    helpOverlay.classList.add('visible');
+  }
+
+  // Close help panel
+  function closeHelp() {
+    helpPanel.classList.remove('visible');
+    helpOverlay.classList.remove('visible');
   }
 
   // Handle form submission
